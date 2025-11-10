@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wishlist de Aniversário</title>
+  <meta name="description" content="Lista de presentes de aniversário com reservas, pesquisa e contador." />
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0b0b0c; --card:#151517; --text:#f6f6f7; --muted:#a3a3ad; --ring:#2b2b32; --primary:#8E4A95; --primarySoft:#EED7F1;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji","Segoe UI Emoji";}
+    a{color:inherit}
+    .container{max-width:1100px; margin:0 auto; padding:0 24px}
+    .ring{border:1px solid var(--ring)}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border:0; padding:.65rem 1rem; border-radius:12px; font-weight:600; cursor:pointer; transition:transform .06s ease, filter .15s ease}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:var(--primary); color:#111}
+    .btn-ghost{background:var(--card); color:var(--text); border:1px solid var(--ring)}
+    header{position:relative; overflow:hidden}
+    .heroGlow{position:absolute; inset:0; opacity:.25; background: radial-gradient(800px 400px at 60% -10%, var(--primarySoft), transparent)}
+    .header-grid{display:grid; grid-template-columns: 1fr; gap:24px; padding-top:56px; padding-bottom:40px}
+    @media(min-width:780px){.header-grid{grid-template-columns:160px 1fr}}
+    .avatar{width:160px; height:160px; object-fit:cover; border-radius:18px; border:1px solid var(--ring)}
+    h1{margin:0; font-size:clamp(24px, 2.8vw, 34px)}
+    .subtitle{color:var(--muted); margin-top:6px}
+    .badges{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:12px}
+    .badge{display:inline-flex; align-items:center; padding:.35rem .7rem; border-radius:999px; font-size:.75rem; color:var(--muted); background:var(--card); border:1px solid var(--ring)}
+    .countdown{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:420px; margin-top:18px}
+    .timebox{background:var(--card); text-align:center; padding:14px; border-radius:16px; border:1px solid var(--ring)}
+    .timebox .num{font-size:28px; font-weight:700; color:var(--primary); font-variant-numeric:tabular-nums}
+    .timebox .lab{margin-top:4px; font-size:12px; color:var(--muted)}
+    .actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+    /* filtros */
+    .filters{border-top:1px solid var(--ring); padding:18px 0}
+    .filters-grid{display:grid; gap:12px}
+    @media(min-width:780px){.filters-grid{grid-template-columns:1fr 1fr 1fr}}
+    .input, .select{width:100%; background:var(--card); color:var(--text); border:1px solid var(--ring); border-radius:12px; padding:12px 14px; outline:none}
+    .input:focus, .select:focus{border-color:color-mix(in oklab, var(--primary) 50%, var(--ring))}
+    /* cards */
+    .grid{display:grid; gap:16px; padding-bottom:60px}
+    @media(min-width:960px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media(min-width:700px) and (max-width:959px){.grid{grid-template-columns:repeat(2,1fr)}}
+    .card{overflow:hidden; background:var(--card); border:1px solid var(--ring); border-radius:22px}
+    .card .imgWrap{position:relative; aspect-ratio:4/3; overflow:hidden}
+    .card img{width:100%; height:100%; object-fit:cover; transition:transform .6s ease}
+    .card:hover img{transform:scale(1.03)}
+    .card .body{padding:16px}
+    .row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+    .priority{font-size:12px; padding:.25rem .5rem; border-radius:999px; background:var(--primarySoft); color:#3e1b44}
+    .muted{color:var(--muted)}
+    .small{font-size:.9rem}
+    .reserveBox{border:1px solid var(--ring); border-radius:12px; padding:10px; margin-top:10px}
+    .reserveForm{display:grid; gap:10px; margin-top:10px}
+    .footer{border-top:1px solid var(--ring); color:var(--muted); font-size:.9rem; padding:18px 0; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="heroGlow"></div>
+    <div class="container header-grid">
+      <img id="heroPhoto" class="avatar" alt="Foto" src="chechs.jpg" />
+      <div>
+        <h1 id="title"></h1>
+        <p class="subtitle" id="subtitle"></p>
+        <div class="badges">
+          <span class="badge" id="badgeBirthday">🎂 Próximo aniversário: –</span>
+          <span class="badge" id="badgeLoc" style="display:none"></span>
+        </div>
+        <div class="countdown">
+          <div class="timebox"><div class="num" id="d">00</div><div class="lab">Dias</div></div>
+          <div class="timebox"><div class="num" id="h">00</div><div class="lab">Horas</div></div>
+          <div class="timebox"><div class="num" id="m">00</div><div class="lab">Min</div></div>
+          <div class="timebox"><div class="num" id="s">00</div><div class="lab">Seg</div></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="suggestBtn">💡 Sugerir presente</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="container">
+      <div class="filters-grid">
+        <input id="query" class="input" placeholder="🔎 Procurar presentes…" />
+        <select id="cat" class="select"></select>
+        <select id="prio" class="select"></select>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <div id="grid" class="grid"></div>
+    <p class="muted" id="empty" style="text-align:center; padding:50px 0; display:none">Nenhum presente encontrado 😅</p>
+  </main>
+
+  <footer class="footer container">
+    <span id="madeBy">Feito com ❤️</span>
+    <span class="muted">Dica: usa "Reservar" para sinalizar que vais oferecer (visível neste dispositivo).</span>
+  </footer>
+
+  <script>
+    // —— CONFIGURAÇÃO RÁPIDA ——
+    const WISHLIST_SETTINGS = {
+      ownerName: "Catarinaaaa",
+      subtitle: "Ideias de presentes que me deixam feliz ✨",
+      birthdayISO: "2025-12-04", // YYYY-MM-DD
+      heroPhoto: "chechs.jpg", // URL da foto
+      contactEmail: "catarina.sobral23@gmail.com",
+      allowSuggestions: true,
+      pageKey: "mario-wishlist-html"
+    };
+
+    const GIFTS = [
+      { id:"fones-razer", title:"Auscultadores Gaming Razer BlackShark V2 X - Branco", note:"Para poder ouvir e jogar melhor ehehe. Tenho cartao fnac", price:"49€", link:"https://www.fnac.pt/Auscultadores-Gaming-Razer-BlackShark-V2-X-Branco-Acessorio-Informatica-e-Tel-Auscultadores/a11004863", image:"https://static.fnac-static.com/multimedia/Images/PT/NR/d0/bf/8a/9093072/1540-1.jpg", priority:"Média", category:"Tecnologia" },
+      { id:"lego-buque", title:"LEGO® Botanicals 10347 - Pequeno Buquê Soalheiro", note:"quero montaaar e nao murchaa", price:"29,99€", link:"https://www.fnac.pt/LEGO-Botanicals-10347-Pequeno-Buque-Soalheiro-Jogos-de-Construcao-LEGO/a12681579", image:"https://static.fnac-static.com/multimedia/Images/PT/NR/b0/79/a2/10647984/1540-1.jpg", priority:"Baixa", category:"Brinquedos" },
+      { id:"mala-parfois", title:"Mala shopper de nylon S", note:"Uma malinhaaa lindaa!!", price:"19,99€", link:"https://www.parfois.com/pt/pt/malas/shoppers/mala-shopper-de-nylon-s/240747.html?dwvar_240747_color=_BN", image:"https://www.parfois.com/dw/image/v2/BBKR_PRD/on/demandware.static/-/Sites-parfois-master-catalog/default/dw942b23fa/images/hi-res/252/54/240747_BN_3y.jpg?sw=2200", priority:"Baixa", category:"Acessórios" },
+      { id:"capa-passaporte", title:"Capa para o passaporte", note:"vou de viagem gostava de levar uma capinha para ir guardado", price:"4,99€", link:"https://lacasadelascarcasas.pt/acessorios/viagens/capa-de-passaporte-acessorios-de-viagem#/441-cor-roxo", image:"https://lacasadelascarcasas.pt/173821-large_default/capa-de-passaporte-acessorios-de-viagem.jpg", priority:"Alta", category:"Acessórios" },
+      { id:"jordan", title:"Jordan Air 1 Mid Junior", note:"Gostava de ter um tenis bota Tamanho: 36/36,5", price:"110€", link:"https://www.jdsports.pt/product/branco-jordan-air-1-mid-junior/763546_jdsportspt/", image:"https://i8.amplience.net/i/jpl/jd_763546_a?qlt=92&w=750&h=531&v=1&fmt=auto", priority:"Média", category:"Moda" },
+      { id:"ipad", title:"iPad APPLE (11'' - 128 GB - Wi-Fi - Azul)", note:"Quero desenhar e poder escrever", price:"379,99€", link:"https://www.worten.pt/produtos/ipad-apple-11-128-gb-wi-fi-azul-8388022", image:"https://www.worten.pt/i/605dc2bda750cc42c93e350d8e0fe6e26a6381fa", priority:"Média", category:"Tecnologia" },
+      {id:"batom", title:"3d hydra lipgloss", note:"A cor é 07 Pink Magnolia", price:"12,99€", link:"https://www.kikocosmetics.com/pt-pt/p/3d-hydra-lipgloss-07-11137/", image:"https://www.kikocosmetics.com/_next/image?url=https%3A%2F%2Fimages.kikocosmetics.com%2Fcatalog%2FKM0020201800744%2F01-20250828.webp&q=80&w=1200&av=v1", priority:"Baixa", category:"Beleza" },
+      {id:"botas", title:"Botas ESTILO MILITAR EM PELE", note:"queria muitoo umas botas", price:"44,50€", link:"https://seaside.pt/produto/bota-estilo-militar-em-pele-7/?_gl=1*p0tq46*_up*MQ..*_gs*MQ..&gclid=CjwKCAiAt8bIBhBpEiwAzH1w6bLWRH0C5nZtIBzBrX-JLHvoNFjkpcsFf11NqpslmEfWJ-4CYwzCehoCY6MQAvD_BwE&gbraid=0AAAAACVFmRVcDc30IqkQ9uSzuGM3vkTRa", image:"https://seaside.pt/wp-content/uploads/2025/10/00040413SPL_camel_01-1-510x681.jpg", priority:"Média", category:"Moda" },
+      {id:"tenis", title:"Puma 9T sapatilhas Mulher Branco", note:"preciso de sapatos", price:"49,99€", link:"https://www.sprintersports.com/pt/puma-9-t-0382947", image:"https://resize.sprintercdn.com/b/512x768/products/0382947/puma-9-t_0382947_02_5_2825399912.jpg?w=512&q=75", priority:"Baixa", category:"Moda" },
+      {id:"sofá", title:"Cadeirão relax motorizado com massagem ROMA preta", note:"quero massagens ehehe", price:"298,90€", link:"https://www.conforama.pt/poltrona-relax-motorizada-com-massagem-roma-preto", image:"https://media-fd.conforama.pt/media/650by551/50bebb8a49caeffc36d002a2fcc40765f22cd3ec_369075___2.jpg", priority:"Baixa", category:"Tecnologia" },
+      {id:"peluche", title:"Peluche pequeno", note:"fofo", price:"5,99€", link:"https://www2.hm.com/pt_pt/productpage.1243531006.html", image:"https://image.hm.com/assets/hm/cc/43/cc43b71e707ca01c2f87dbd40b00bf9230f4784c.jpg?imwidth=2160", priority:"Média", category:"Brinquedos" },
+      {id:"cachecol", title:"Cachecol quente", note:"para levar na viagem", price:"15,99€", link:"https://www2.hm.com/pt_pt/productpage.1308367001.html", image:"https://image.hm.com/assets/hm/c1/85/c185c7f60b472e9f40e510b7e902eda53b900010.jpg?imwidth=2160", priority:"Média", category:"Moda" }
+    ];
+
+    // —— UTILITÁRIOS ——
+    const el = (sel, p=document) => p.querySelector(sel);
+    const fmtDate = (d) => d.toLocaleDateString(undefined,{day:"2-digit", month:"long", year:"numeric"});
+    const pad2 = (n) => String(n).padStart(2,'0');
+    function nextBirthdayDate(iso){
+      const today = new Date();
+      const [y,m,d] = iso.split('-').map(Number);
+      let next = new Date(today.getFullYear(), m-1, d);
+      const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      if(next < todayOnly) next = new Date(today.getFullYear()+1, m-1, d);
+      return next;
+    }
+
+    // —— RESERVAS (localStorage) ——
+    const LS_KEY = `wishlist-reservations:${WISHLIST_SETTINGS.pageKey}`;
+    const loadRes = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); } catch { return {}; } };
+    const saveRes = (data) => localStorage.setItem(LS_KEY, JSON.stringify(data));
+
+    // —— ESTADO ——
+    let reservations = loadRes();
+    let query = ""; let cat = "Todas"; let prio = "Todas";
+
+    // —— INICIALIZAÇÃO HEADER ——
+    function initHeader(){
+      el('#heroPhoto').src = WISHLIST_SETTINGS.heroPhoto;
+      el('#title').textContent = `${WISHLIST_SETTINGS.ownerName}'s Wishlist`;
+      el('#subtitle').textContent = WISHLIST_SETTINGS.subtitle;
+      el('#madeBy').textContent = `Feito com ❤️ por ${WISHLIST_SETTINGS.ownerName}`;
+      const nextBirth = nextBirthdayDate(WISHLIST_SETTINGS.birthdayISO);
+      el('#badgeBirthday').textContent = `🎂 Próximo aniversário: ${fmtDate(nextBirth)}`;
+      if(WISHLIST_SETTINGS.location){
+        const b = el('#badgeLoc'); b.style.display = ''; b.textContent = `📍 ${WISHLIST_SETTINGS.location}`;
+      }
+      // countdown
+      function tick(){
+        const now = Date.now();
+        const delta = Math.max(0, nextBirth.getTime() - now);
+        const days = Math.floor(delta/86400000);
+        const hours = Math.floor((delta/3600000)%24);
+        const minutes = Math.floor((delta/60000)%60);
+        const seconds = Math.floor((delta/1000)%60);
+        el('#d').textContent = pad2(days);
+        el('#h').textContent = pad2(hours);
+        el('#m').textContent = pad2(minutes);
+        el('#s').textContent = pad2(seconds);
+      }
+      tick(); setInterval(tick, 1000);
+      // actions
+      el('#suggestBtn').onclick = ()=>{
+        const subject = encodeURIComponent('Sugestão de presente');
+        const body = encodeURIComponent('Olá! Pensei nisto para o teu aniversário:\n\n');
+        location.href = `mailto:${WISHLIST_SETTINGS.contactEmail}?subject=${subject}&body=${body}`;
+      };
+    }
+
+    // —— FILTROS ——
+    function initFilters(){
+      const cats = ['Todas', ...Array.from(new Set(GIFTS.map(g=>g.category)))];
+      const prios = ['Todas','Alta','Média','Baixa'];
+      const catSel = el('#cat'); const prioSel = el('#prio');
+      catSel.innerHTML = cats.map(c=>`<option>${c}</option>`).join('');
+      prioSel.innerHTML = prios.map(p=>`<option>${p}</option>`).join('');
+      el('#query').addEventListener('input', e=>{ query = e.target.value; renderGrid(); });
+      catSel.addEventListener('change', e=>{ cat = e.target.value; renderGrid(); });
+      prioSel.addEventListener('change', e=>{ prio = e.target.value; renderGrid(); });
+    }
+
+    function matches(g){
+      const q = query.trim().toLowerCase();
+      const matchQ = q ? `${g.title} ${g.note} ${g.category}`.toLowerCase().includes(q) : true;
+      const matchC = (cat==='Todas') || g.category===cat;
+      const matchP = (prio==='Todas') || g.priority===prio;
+      return matchQ && matchC && matchP;
+    }
+
+    // —— RENDER GIFTS ——
+    function renderGrid(){
+      const list = GIFTS.filter(matches);
+      const grid = el('#grid');
+      grid.innerHTML = '';
+      if(list.length===0){ el('#empty').style.display='block'; return; } else { el('#empty').style.display='none'; }
+      for(const g of list){
+        const r = reservations[g.id];
+        const card = document.createElement('article'); card.className = 'card';
+        card.innerHTML = `
+          <div class="imgWrap"><img src="${g.image}" alt="${g.title}"></div>
+          <div class="body">
+            <div class="row">
+              <h3 style="margin:0; font-size:1.05rem">${g.title}</h3>
+              <span class="priority">${g.priority}</span>
+            </div>
+            <p class="muted small" style="margin:.35rem 0 0">${g.note}</p>
+            <div class="row" style="margin-top:.6rem; gap:.6rem; align-items:center">
+              <a class="small" href="${g.link}" target="_blank" rel="noreferrer" style="text-decoration:underline; text-underline-offset:2px">Ver loja</a>
+              <span class="muted">•</span>
+              <span class="muted small">${g.category}</span>
+              <span style="margin-left:auto; font-weight:600">${g.price}</span>
+            </div>
+            <div class="reserve" style="margin-top:10px"></div>
+          </div>`;
+        const resWrap = card.querySelector('.reserve');
+        if(!r){
+          const btn = document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='🎁 Reservar';
+          btn.onclick = ()=> openReserveForm(g.id, resWrap);
+          resWrap.appendChild(btn);
+        } else {
+          resWrap.appendChild(renderReservation(g.id, r));
+        }
+        grid.appendChild(card);
+      }
+    }
+
+    function openReserveForm(giftId, mount){
+      mount.innerHTML = '';
+      const box = document.createElement('div'); box.className='reserveBox';
+      box.innerHTML = `
+        <div class="small" style="font-weight:600; margin-bottom:6px">Reservar este presente</div>
+        <div class="reserveForm">
+          <input class="input" placeholder="O teu nome" id="rName">
+          <input class="input" placeholder="Mensagem (opcional)" id="rMsg">
+          <div style="display:flex; gap:8px">
+            <button class="btn btn-primary" id="ok">Confirmar</button>
+            <button class="btn btn-ghost" id="cancel">Fechar</button>
+          </div>
+        </div>`;
+      mount.appendChild(box);
+      box.querySelector('#ok').onclick = ()=>{
+        const name = box.querySelector('#rName').value.trim();
+        const message = box.querySelector('#rMsg').value.trim();
+        if(!name){ alert('Escreve o teu nome ✍️'); return; }
+        reservations[giftId] = { name, message, at: new Date().toISOString() };
+        saveRes(reservations);
+        mount.innerHTML='';
+        mount.appendChild(renderReservation(giftId, reservations[giftId]));
+      };
+      box.querySelector('#cancel').onclick = ()=>{ mount.innerHTML=''; const b=document.createElement('button'); b.className='btn btn-primary'; b.textContent='🎁 Reservar'; b.onclick=()=>openReserveForm(giftId, mount); mount.appendChild(b); };
+    }
+
+    function renderReservation(giftId, r){
+      const wrap = document.createElement('div'); wrap.className='reserveBox small';
+      wrap.innerHTML = `
+        <div><span class="muted">Reservado por:</span> <strong>${r.name}</strong></div>
+        ${r.message ? `<div style="opacity:.8; margin-top:4px">“${r.message}”</div>` : ''}
+        <div style="display:flex; gap:8px; margin-top:8px"><button class="btn btn-ghost" id="cancel">Cancelar</button></div>`;
+      wrap.querySelector('#cancel').onclick = ()=>{
+        delete reservations[giftId]; saveRes(reservations); renderGrid();
+      };
+      return wrap;
+    }
+
+    // —— START ——
+    initHeader();
+    initFilters();
+    renderGrid();
+  </script>
+</body>
+</html>
